@@ -8,7 +8,7 @@ class Particle:
     gravitational_constant = 6.67408 * pow(10.0, -0.5)
     velocity = [0, 0, 0]
     acceleration = [0, 0, 0]
-    density = 69
+    density = 20
     color = [0, 0, 0]
     is_black_hole = False
 
@@ -19,6 +19,9 @@ class Particle:
         self.mass = math.pi * pow(radius, 2) * self.density
         self.color = color
         self.is_black_hole = is_black_hole
+
+    def get_density(self):
+        return self.density
 
     def get_radius(self):
         return self.radius
