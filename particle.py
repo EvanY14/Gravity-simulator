@@ -11,14 +11,19 @@ class Particle:
     density = 20
     color = [0, 0, 0]
     is_black_hole = False
+    trail = []
 
-    def __init__(self, radius, position, velocity, color, is_black_hole):
+    def __init__(self, radius, position, velocity, color, is_black_hole, trail):
         self.radius = radius
         self.position = position
         self.velocity = velocity
         self.mass = math.pi * pow(radius, 2) * self.density
         self.color = color
         self.is_black_hole = is_black_hole
+        self.trail = trail
+
+    def get_trail(self):
+        return self.trail
 
     def get_density(self):
         return self.density
@@ -152,6 +157,12 @@ class Particle:
 
     def set_y(self, y):
         self.position[1] = y
+
+    def add_to_trail(self, pos):
+        if len(self.trail) > 1:
+            if math.hypot(self.trail[0][0] - pos[0], self.trail[0][1] - pos[1]) > 100:
+                self.trail.remove(self.trail[0])
+        self.trail.append(pos)
 
     def get_distance_to_particle(self, p):
         distance = math.hypot(self.get_x() - p.get_x(), self.get_y() - p.get_y())

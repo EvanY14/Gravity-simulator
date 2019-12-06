@@ -1,5 +1,4 @@
 import math
-from threading import Thread
 from time import *
 import pygame
 from particle import Particle
@@ -12,20 +11,34 @@ particle_circles = []
 delay_time = 0.01
 critical_mass = 10000
 sound_file = "explosion_2.wav"
+pygame.font.init()
+pygame.mixer.init()
+pygame.init()
+font = pygame.font.SysFont('comicsansms', 32)
+screen = pygame.display.set_mode((width, height))
+
+
+def redraw_button(shape, text, color):
+    shape_rectangle = pygame.Rect((shape.x, shape.y), (shape.width, shape.height))
+    shape_text = font.render(text, True, (0,0,0))
+    shape_rect = shape_text.get_rect()
+    shape_rect.center = (shape_rectangle.center[0], shape_rectangle.y + (shape_rectangle.height / 2))
+
+    pygame.draw.rect(screen, color, shape_rectangle)
+    screen.blit(shape_text, (shape_rect[0], shape_rect[1]))
+    pygame.display.flip()
 
 
 def simulator():
-    pygame.font.init()
-    pygame.mixer.init()
+
     # explosion = pygame.mixer.music.load(sound_file)
-    font = pygame.font.SysFont('comicsansms', 32)
     radius = 0.0
     RED = pygame.Color("#FF0000")
     running = True
     growing = False
     start_time = 0
-    pygame.init()
-    screen = pygame.display.set_mode((width, height))
+
+
     particleImg = pygame.image.load(
         'C:\\Users\\yueva\\AppData\\Local\\Programs\\Python\\Python37-32\\gravity_simulator\\particle.gif').convert_alpha()
     screen.fill((0, 0, 0))
@@ -35,6 +48,7 @@ def simulator():
     first_run = True
     run_count = 0
     real_time_simulation = True
+    ultra_graphics = False
 
     # Title Screen
     # Title text
@@ -49,6 +63,7 @@ def simulator():
     play_text = font.render("Play", True, (0, 0, 0))
     play_text_rect = play_text.get_rect()
     play_text_rect.center = (width / 2 - 350, height / 2 + 100)
+
     settings_text = font.render("Settings", True, (0,0,0))
     settings_text_rect = settings_text.get_rect()
     settings_text_rect.center = (width / 2 + 150, height / 2 + 100)
@@ -77,30 +92,68 @@ def simulator():
                     # Define the Real time simulation prompt
                     real_time_text = font.render("Real time simulation", True, (255, 255, 255))
                     real_time_rect = real_time_text.get_rect()
-                    real_time_rect.center = (width / 2, height / 2)
+                    real_time_rect.center = (width / 2, 300)
                     screen.blit(real_time_text,
-                                ((width / 2) - (real_time_text.get_width() / 2),
-                                 (height / 2) - real_time_text.get_height()))
+                                ((width / 2) - (real_time_rect.width / 2),
+                                 real_time_rect.y - real_time_rect.height))
 
                     # Define the yes button
-                    yes_rectangle = pygame.Rect((width / 2 - 350, height / 2 + 50), (300, 100))
-                    pygame.draw.rect(screen, (0, 255, 0), yes_rectangle)
+                    yes_rectangle = pygame.Rect((width / 2 - 350, real_time_rect.y + real_time_rect.height + 50), (300, 100))
+
                     yes_text = font.render("Yes", True, (0, 0, 0))
                     yes_rect = yes_text.get_rect()
-                    yes_rect.center = (width / 2 - 350, height / 2 + 100)
-                    screen.blit(yes_text, (yes_rect[0] + 150, yes_rect[1]))
+                    yes_rect.center = (width / 2 - 200, yes_rectangle.y + (yes_rectangle.height/2))
+
+                    pygame.draw.rect(screen, (255, 255, 255), yes_rectangle)
+                    screen.blit(yes_text, (yes_rect[0], yes_rect[1]))
 
                     # Define the no button
-                    no_rectangle = pygame.Rect((width / 2 + 50, height / 2 + 50), (300, 100))
-                    pygame.draw.rect(screen, (0, 255, 0), no_rectangle)
+                    no_rectangle = pygame.Rect((width / 2 + 50, real_time_rect.y + real_time_rect.height + 50), (300, 100))
+
                     no_text = font.render("No", True, (0, 0, 0))
                     no_rect = no_text.get_rect()
-                    no_rect.center = (width / 2 + 150, height / 2 + 100)
-                    screen.blit(no_text, (no_rect[0] + 50, no_rect[1]))
+                    no_rect.center = (width / 2 + 200, no_rectangle.y + (no_rectangle.height/2))
+
+                    pygame.draw.rect(screen, (0, 255, 0), no_rectangle)
+                    screen.blit(no_text, (no_rect[0], no_rect[1]))
+
+                    # Define the play button on the settings screen
+                    play_rectangle = pygame.Rect((width - 250, 100), (300, 100))
+                    play_text = font.render("Play", True, (0, 0, 0))
+                    play_rect = play_text.get_rect()
+                    play_rect.center = (width - 250, 100)
+                    pygame.draw.rect(screen, (0, 255, 0), play_rectangle)
+                    screen.blit(play_text, (play_rect[0] + 125, play_rect[1] + 50))
+
+                    # Define quality header
+                    quality_text = font.render("Quality", True, (255,255,255))
+                    quality_rect = quality_text.get_rect()
+                    quality_rect.center = (width / 2, 600)
+
+                    screen.blit(quality_text, (quality_rect[0], quality_rect[1]))
+
+                    # Define graphics quality buttons
+                    # Normal graphics
+                    normal_rectangle = pygame.Rect((width / 2 - 350, quality_rect.y + quality_rect.height + 50), (300, 100))
+                    normal_text = font.render("Normal", True, (0,0,0))
+                    normal_rect = normal_text.get_rect()
+                    normal_rect.center = (width / 2 - 200, normal_rectangle.y + (normal_rectangle.height/2))
+                    pygame.draw.rect(screen, (255,255,255), normal_rectangle)
+                    screen.blit(normal_text, (normal_rect[0], normal_rect[1]))
+
+                    # Ultra graphics
+                    ultra_rectangle = pygame.Rect((width / 2 + 50, quality_rect.y + quality_rect.height + 50),
+                                               (300, 100))
+                    ultra_text = font.render("Ultra", True, (0, 0, 0))
+                    ultra_rect = ultra_text.get_rect()
+                    ultra_rect.center = (width / 2 + 200, ultra_rectangle.y + (ultra_rectangle.height / 2))
+
+                    pygame.draw.rect(screen, (0, 255, 0), ultra_rectangle)
+                    screen.blit(ultra_text, (ultra_rect[0], ultra_rect[1]))
 
                     pygame.display.flip()
                     events_2 = pygame.event.get()
-                    real_time_simulation = False
+                    real_time_simulation = True
                     # while pygame.MOUSEBUTTONDOWN not in events:
                     #    sleep(0.1)
                     #    events = pygame.event.get()
@@ -111,18 +164,42 @@ def simulator():
                         for event in events_2:
                             if event.type == pygame.MOUSEBUTTONDOWN:
                                 print("mouse button down")
+                                # If the yes button is pressed, set real_time_simulation to true and make it white
                                 if yes_rectangle.collidepoint(event.pos):
                                     real_time_simulation = True
-                                    break_out_2 = True
+                                    # break_out_2 = True
+                                    redraw_button(no_rectangle, "No", (0, 255, 0))
+                                    redraw_button(yes_rectangle, "Yes", (255, 255, 255))
+
+                                # If the no button is pressed, set real_time_simulation to false and make it white
                                 elif no_rectangle.collidepoint(event.pos):
                                     real_time_simulation = False
+                                    # break_out_2 = True
+                                    redraw_button(no_rectangle, "No", (255, 255, 255))
+                                    redraw_button(yes_rectangle, "Yes", (0, 255, 0))
+
+                                # If the play button is pressed, break out and start the simulation
+                                elif play_rectangle.collidepoint(event.pos):
+                                    break_out = True
                                     break_out_2 = True
+
+                                # If the normal button is pressed, set graphics to normal (no trail)
+                                elif normal_rectangle.collidepoint(event.pos):
+                                    # break_out_2 = True
+                                    ultra_graphics = False
+                                    redraw_button(ultra_rectangle, "Ultra", (0, 255, 0))
+                                    redraw_button(normal_rectangle, "Normal", (255, 255, 255))
+                                elif ultra_rectangle.collidepoint(event.pos):
+                                    # break_out_2 = True
+                                    ultra_graphics = True
+                                    print('Ultra graphics')
+                                    redraw_button(ultra_rectangle, "Ultra", (255,255,255))
+                                    redraw_button(normal_rectangle, "Normal", (0,255,0))
                                 break
                         events_2 = pygame.event.get()
 
                     print(real_time_simulation)
                     #######
-                    break_out = True
                 break
         events = pygame.event.get()
     sleep(0.5)
@@ -173,8 +250,13 @@ def simulator():
                 growing = False
                 init_velocity_x = (end_pos[0] - start_pos[0]) / 50
                 init_velocity_y = (end_pos[1] - start_pos[1]) / 50
-                p = Particle(radius, [start_pos[0], start_pos[1], 0], [init_velocity_x, init_velocity_y, 0],
-                             color_array, False)
+                p = Particle(radius,
+                             [start_pos[0], start_pos[1], 0],
+                             [init_velocity_x, init_velocity_y, 0],
+                             color_array,
+                             False,
+                             [])
+
                 particles.append(p)
 
         # Pause simulation
@@ -192,6 +274,10 @@ def simulator():
         # Reset simulation
         if pygame.key.get_pressed()[pygame.K_r]:
             particles.clear()
+
+        # If q is pressed, quit simulation
+        if pygame.key.get_pressed()[pygame.K_q]:
+            pygame.QUIT()
 
         # If there is already a particle growing, increase the radius by 0.5 pixels per cycle
         if growing:
@@ -263,7 +349,8 @@ def simulator():
                                     [larger.get_x(), larger.get_y(), 0],
                                     [velocity_x, velocity_y, 0],
                                     p.get_color(),
-                                    p.get_is_black_hole())
+                                    p.get_is_black_hole(),
+                                    [])
 
                     # if temp.get_mass() > critical_mass and not temp.get_is_black_hole():
                     #    temp.set_black_hole(True)
@@ -272,6 +359,7 @@ def simulator():
                 else:
                     p.set_x(int(p.get_x() + (p.calc_velocity_x(delay_time))))
                     p.set_y(int(p.get_y() + (p.calc_velocity_y(delay_time))))
+                    p.add_to_trail((p.get_x(), p.get_y()))
 
                     pygame.draw.circle(surface,
                                        p.get_color(),
@@ -281,6 +369,13 @@ def simulator():
 
                     if p.get_x() <= 0 or p.get_x() >= width or p.get_y() <= 0 or p.get_y() >= height:
                         particles.remove(p)
+
+                    if ultra_graphics:
+                        for t in p.get_trail():
+                            pygame.draw.rect(screen,
+                                             p.get_color(),
+                                             pygame.Rect((t[0], t[1]),
+                                                         (2, 2)))
 
         else:
             for p in particles:
