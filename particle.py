@@ -8,7 +8,7 @@ class Particle:
     gravitational_constant = 6.67408 * pow(10.0, -0.5)
     velocity = [0, 0, 0]
     acceleration = [0, 0, 0]
-    density = 20
+    density = 70
     color = [0, 0, 0]
     is_black_hole = False
     trail = []
@@ -65,15 +65,16 @@ class Particle:
                         x_sign = -1
                     if i.get_y() - self.get_y() < 0:
                         y_sign = -1
+
                     # if not (i.get_x() is self.get_x() and i.get_y() is self.get_y()):
-                    sum_x += x_sign * (self.gravitational_constant * i.get_mass() * self.get_mass() / pow(
-                        self.get_distance_to_particle(i), 2))  # * (i.get_x() - self.get_x())
+                    sum_x += (self.gravitational_constant * i.get_mass() * self.get_mass() / pow(
+                        self.get_distance_to_particle(i), 3)) * (i.get_x() - self.get_x())
 
-                    sum_y += y_sign * (self.gravitational_constant * i.get_mass() * self.get_mass() / pow(
-                        self.get_distance_to_particle(i), 2))  # * (i.get_y() - self.get_y())
+                    sum_y += (self.gravitational_constant * i.get_mass() * self.get_mass() / pow(
+                        self.get_distance_to_particle(i), 3)) * (i.get_y() - self.get_y())
 
-        self.acceleration[0] = (sum_x / pow(self.get_mass(), 1)) / 2.5
-        self.acceleration[1] = (sum_y / pow(self.get_mass(), 1)) / 2.5
+        self.acceleration[0] = (sum_x / pow(self.get_mass(), 1)) / 5
+        self.acceleration[1] = (sum_y / pow(self.get_mass(), 1)) / 5
         return None
 
     def get_acceleration_2(self, particles):

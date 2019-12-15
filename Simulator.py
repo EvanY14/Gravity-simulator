@@ -48,6 +48,7 @@ def simulator():
     real_time_simulation = True
     ultra_graphics = True
     start_with_sun = True
+    demo_mode = False
 
     # Title Screen
     # Title text
@@ -58,6 +59,7 @@ def simulator():
     # Define buttons
     play_button = pygame.Rect((screen.get_width() / 2 - 350, screen.get_height() / 2 + 50), (300, 100))
     settings_button = pygame.Rect((screen.get_width() / 2 + 50, screen.get_height() / 2 + 50), (300, 100))
+    demo_button = pygame.Rect((screen.get_width() / 2 - 350, screen.get_height() / 2 + 200), (300, 100))
 
     # Define button text
     play_text = font.render("Play", True, (0, 0, 0))
@@ -68,11 +70,18 @@ def simulator():
     settings_text_rect = settings_text.get_rect()
     settings_text_rect.center = (screen.get_width() / 2 + 150, (screen.get_height() / 2 + 100))
 
+    demo_text = font.render("Demo", True, (0, 0, 0))
+    demo_text_rect = demo_text.get_rect()
+    demo_text_rect.center = (screen.get_width() / 2 - 350, screen.get_height() / 2 + 200)
+
+
     # Draw buttons
     pygame.draw.rect(screen, (0, 255, 0), play_button)
     pygame.draw.rect(screen, (0, 255, 0), settings_button)
+    pygame.draw.rect(screen, (0, 255, 0), demo_button)
     screen.blit(play_text, (play_button[0] + 150 - (play_text.get_width() / 2), play_button[1] + 25))
     screen.blit(settings_text, (settings_button[0] + 150 - (settings_text.get_width() / 2), settings_button[1] + 25))
+    screen.blit(demo_text, (demo_button[0] + 150 - (demo_text.get_width() / 2), demo_button[1] + 25))
     pygame.display.flip()
 
     # Get input for buttons
@@ -84,6 +93,11 @@ def simulator():
                 print("mouse button down")
                 if play_button.collidepoint(e.pos):
                     print("play pressed")
+                    break_out = True
+                    break
+                elif demo_button.collidepoint(e.pos):
+                    print("Demo mode")
+                    demo_mode = True
                     break_out = True
                     break
                 elif settings_button.collidepoint(e.pos):
@@ -273,7 +287,7 @@ def simulator():
                                 (255, 255, 0),
                                 False,
                                 [])
-            particle.set_density(50)
+            # particle.set_density(50)
             particle.set_movable(False)
             particles.append(particle)
 
@@ -288,8 +302,23 @@ def simulator():
             pygame.draw.rect(screen, (0, 255, 0), run_rectangle)
             screen.blit(run_text, (run_rect[0] + 125, run_rect[1] + 50))
 
+        if demo_mode and run_count == 0:
+            p = Particle(12.5,
+                         [screen.get_width() / 3, screen.get_height() * 0.75, 0],
+                         [5, 5, 0],
+                         [0, 255, 0],
+                         False,
+                         [])
+            particles.append(p)
         run_count += 1
         # init_velocity_x = init_velocity_y = 0
+        if demo_mode:
+            add_particle_rectangle = pygame.Rect(((screen.get_width()/2) - 150, screen.get_height() - 100), (300, 100))
+            add_particle_text = font.render("Add Particle", True, (0, 0, 0))
+            add_particle_rect = add_particle_text.get_rect()
+            add_particle_rect.center = (screen.get_width() / 2, screen.get_height() - 100)
+            pygame.draw.rect(screen, (0, 255, 0), add_particle_rectangle)
+            screen.blit(add_particle_text, (add_particle_rect[0], add_particle_rect[1] + 50))
 
         # Get all input events and check if they are a mouse click
         event = pygame.event.get()
@@ -298,6 +327,23 @@ def simulator():
                 # If the user clicks the run simulation button tell the program to run the simulation
                 if not real_time_simulation and run_rectangle.collidepoint(e.pos):
                     real_time_simulation = True
+                    break
+
+                if demo_mode and add_particle_rectangle.collidepoint(e.pos):
+                    angle = secrets.randbelow(360)
+                    angle = angle * math.pi / 180
+                    demo_radius = secrets.randbelow(50) + particles[0].get_radius() + 100
+                    x1 = demo_radius * math.cos(angle)
+                    y1 = demo_radius * math.sin(angle)
+
+                    p = Particle(12.5,
+                                 [particles[0].get_x() + x1, particles[0].get_y() + y1, 0],
+                                 [10 * math.sin(angle), -10 * math.cos(angle), 0],
+                                 [secrets.randbelow(255), secrets.randbelow(255), secrets.randbelow(255)],
+                                 False,
+                                 [])
+
+                    particles.append(p)
                     break
 
                 # If the simulation is running, draw a circle of a random color
@@ -310,18 +356,18 @@ def simulator():
             # if the user releases the mouse button, create a Particle object and pass it the radius, start position,
             # initial velocities, and color
             elif e.type == pygame.MOUSEBUTTONUP:
+                if growing:
+                    growing = False
+                    init_velocity_x = (end_pos[0] - start_pos[0]) / 50
+                    init_velocity_y = (end_pos[1] - start_pos[1]) / 50
+                    p = Particle(radius,
+                                 [start_pos[0], start_pos[1], 0],
+                                 [init_velocity_x, init_velocity_y, 0],
+                                 color_array,
+                                 False,
+                                 [])
 
-                growing = False
-                init_velocity_x = (end_pos[0] - start_pos[0]) / 50
-                init_velocity_y = (end_pos[1] - start_pos[1]) / 50
-                p = Particle(radius,
-                             [start_pos[0], start_pos[1], 0],
-                             [init_velocity_x, init_velocity_y, 0],
-                             color_array,
-                             False,
-                             [])
-
-                particles.append(p)
+                    particles.append(p)
 
         # Pause simulation
         if pygame.key.get_pressed()[pygame.K_SPACE]:
